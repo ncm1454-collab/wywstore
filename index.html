@@ -464,6 +464,18 @@
     <script>
         let savedProducts = [];
 
+        // Sample preset text to fill in the search bar
+        const presets = {
+            'minimalist wallet': "I'm looking for a premium brown leather minimalist wallet. It must be very thin, have built-in RFID blocking protection, hold up to 6 credit cards comfortably, and be priced under $50. Something highly rated on Amazon or direct sites.",
+            'mechanical keyboard': "Find me a compact mechanical keyboard with high tactile keys (quiet/brown switches preferred). It must support Bluetooth wireless connection and have clean retro keycaps. Looking for a high quality choice between $80 and $150.",
+            'dutch coffee maker': "Ik ben op zoek naar een hoogwaardig elektrisch koffiezetapparaat voor filterkoffie. Het moet een glazen kan hebben, snel brouwproces, warmhoudplaat en een modern zwart/rvs design hebben. Budget rond de €80."
+        };
+
+        function usePreset(key) {
+    <!-- Scripts -->
+    <script>
+        let savedProducts = [];
+
         // Initialize Lucide Icons
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
