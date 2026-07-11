@@ -85,7 +85,6 @@
                 </a>
             </nav>
 
-            <!-- Spacing alignment block -->
             <div class="flex items-center gap-3">
                 <div id="quota-badge" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1.5 font-medium">
                     <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-400"></i>
@@ -148,22 +147,6 @@
             
             <h3 class="text-xl font-display font-bold text-white mb-2" id="loading-title">Deploying Scouts</h3>
             <p class="text-slate-400 text-sm max-w-md mx-auto" id="loading-subtitle">Querying e-commerce catalogs and scouring live search results...</p>
-
-            <!-- Dynamic step status tracker -->
-            <div class="mt-8 max-w-sm mx-auto space-y-3 bg-slate-900/50 border border-slate-800 rounded-xl p-4 text-left">
-                <div class="flex items-center gap-3 text-xs" id="step-1">
-                    <div class="w-4 h-4 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 hidden"></i><span class="dot-loader w-1.5 h-1.5 bg-brand-400 rounded-full"></span></div>
-                    <span class="text-slate-400">Analyzing query language & region intent</span>
-                </div>
-                <div class="flex items-center gap-3 text-xs" id="step-2">
-                    <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 hidden"></i><span class="dot-loader w-1.5 h-1.5 bg-slate-500 rounded-full hidden"></span></div>
-                    <span class="text-slate-500">Querying localized web catalogs (Bol.com, Coolblue, Amazon)</span>
-                </div>
-                <div class="flex items-center gap-3 text-xs" id="step-3">
-                    <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 hidden"></i><span class="dot-loader w-1.5 h-1.5 bg-slate-500 rounded-full hidden"></span></div>
-                    <span class="text-slate-500">Verifying live price points and matching direct links</span>
-                </div>
-            </div>
         </div>
 
         <!-- Search Results Grid -->
@@ -312,7 +295,6 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
 
-                    // Sign in as required prior to conducting transactions (RULE 3)
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         const credentials = await signInWithCustomToken(auth, __initial_auth_token);
                         user = credentials.user;
@@ -359,8 +341,6 @@
             }
 
             try {
-                // Rule 1: STRICT PATH (using artifacts/{appId}/public/data/ip_limits/{hashed_ip})
-                // Replace characters to ensure document path is entirely clean
                 const docId = clientIp.replace(/[\.\:\/]/g, '_');
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ip_limits', docId);
                 const docSnap = await getDoc(docRef);
@@ -464,18 +444,6 @@
     <script>
         let savedProducts = [];
 
-        // Sample preset text to fill in the search bar
-        const presets = {
-            'minimalist wallet': "I'm looking for a premium brown leather minimalist wallet. It must be very thin, have built-in RFID blocking protection, hold up to 6 credit cards comfortably, and be priced under $50. Something highly rated on Amazon or direct sites.",
-            'mechanical keyboard': "Find me a compact mechanical keyboard with high tactile keys (quiet/brown switches preferred). It must support Bluetooth wireless connection and have clean retro keycaps. Looking for a high quality choice between $80 and $150.",
-            'dutch coffee maker': "Ik ben op zoek naar een hoogwaardig elektrisch koffiezetapparaat voor filterkoffie. Het moet een glazen kan hebben, snel brouwproces, warmhoudplaat en een modern zwart/rvs design hebben. Budget rond de €80."
-        };
-
-        function usePreset(key) {
-    <!-- Scripts -->
-    <script>
-        let savedProducts = [];
-
         // Initialize Lucide Icons
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -516,21 +484,8 @@
             setUIState('loading');
             
             try {
-                // Initialize steps tracking
-                updateStep(1, 'active');
-                await delay(1000);
-
-                updateStep(1, 'done');
-                updateStep(2, 'active');
-                
-                // Get matching products using Cloudflare Worker
+                // Get matching products immediately without simulated step delays
                 const results = await callGeminiScout(query);
-                
-                updateStep(2, 'done');
-                updateStep(3, 'active');
-                await delay(800);
-                
-                updateStep(3, 'done');
                 
                 // Render products
                 renderResults(results);
@@ -554,36 +509,6 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        // Step Tracker Visual Helpers
-        function updateStep(stepNum, status) {
-            const element = document.getElementById(`step-${stepNum}`);
-            if (!element) return;
-            const marker = element.querySelector('div');
-            const text = element.querySelector('span');
-            const dot = element.querySelector('.dot-loader');
-            const check = element.querySelector('i');
-
-            if (status === 'active') {
-                element.className = "flex items-center gap-3 text-xs text-brand-300 font-medium";
-                marker.className = "w-4 h-4 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center animate-pulse";
-                if (dot) dot.classList.remove('hidden');
-                if (check) check.classList.add('hidden');
-            } else if (status === 'done') {
-                element.className = "flex items-center gap-3 text-xs text-emerald-400";
-                marker.className = "w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center";
-                if (dot) dot.classList.add('hidden');
-                if (check) {
-                    check.classList.remove('hidden');
-                    lucide.createIcons();
-                }
-            } else {
-                element.className = "flex items-center gap-3 text-xs text-slate-500";
-                marker.className = "w-4 h-4 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center";
-                if (dot) dot.classList.add('hidden');
-                if (check) check.classList.add('hidden');
-            }
-        }
-
         function setUIState(state) {
             const loading = document.getElementById('loading-state');
             const results = document.getElementById('results-section');
@@ -594,9 +519,6 @@
                 results.classList.add('hidden');
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50');
-                updateStep(1, 'idle');
-                updateStep(2, 'idle');
-                updateStep(3, 'idle');
             } else if (state === 'results') {
                 loading.classList.add('hidden');
                 results.classList.remove('hidden');
@@ -617,7 +539,7 @@
             showToast("Search cleared.", "info");
         }
 
-        // Robust link builder fallback to ensure 100% active, highly qualified target URLs
+        // Robust link builder fallback to ensure 100% active, highly qualified target search URLs
         function createReliableLink(provider, productName) {
             const encodedName = encodeURIComponent(productName);
             const provLower = provider.toLowerCase().trim();
@@ -715,11 +637,9 @@
                 const ebayURL = createReliableLink('ebay', product.name);
                 const bolURL = createReliableLink('bol', product.name);
 
-                // Primary buy link configuration
-                let primaryBuyLink = product.buyLink;
-                if (!primaryBuyLink || !primaryBuyLink.startsWith('http')) {
-                    primaryBuyLink = createReliableLink(product.sourceStore, product.name);
-                }
+                // Primary buy link configuration: We ALWAYS use the search-query redirect link
+                // to completely eliminate 404 broken pages from LLM-hallucinated deep product IDs.
+                const primaryBuyLink = createReliableLink(product.sourceStore, product.name);
 
                 // Create SVG icon and colors based on store
                 let storeIcon = "shopping-bag";
@@ -908,7 +828,7 @@
 
         function renderFavorites() {
             const flexBuyUrl = (item) => {
-                return item.buyLink || createReliableLink(item.sourceStore, item.name);
+                return createReliableLink(item.sourceStore, item.name);
             };
 
             const favList = document.getElementById('favorites-list');
