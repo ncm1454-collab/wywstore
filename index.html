@@ -694,10 +694,6 @@
             scoutData.products.forEach((product, idx) => {
                 const uniqueId = `prod-${Date.now()}-${idx}`;
                 const isSaved = savedProducts.some(p => p.name === product.name);
-                
-                // Formulate target search strings (only Amazon and eBay are kept)
-                const amazonURL = createReliableLink('amazon', product.name);
-                const ebayURL = createReliableLink('ebay', product.name);
 
                 // Primary buy link configuration: dynamically target the verified base store's search query (Never falls back to Google search page)
                 const primaryBuyLink = createReliableLink(product.sourceStore, product.name, product.buyLink);
@@ -751,19 +747,6 @@
                             <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800/40">
                                 <span class="text-[10px] uppercase tracking-wider text-brand-400 font-bold block mb-1">Match Reason</span>
                                 <p class="text-slate-300 text-xs italic leading-relaxed">"${product.whyItMatches}"</p>
-                            </div>
-
-                            <!-- Smart Buy Hub (Localized Search Routing) -->
-                            <div class="space-y-2 pt-2">
-                                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block">Alternate Quick Shop Links</span>
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <a href="${amazonURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Amazon search
-                                    </a>
-                                    <a href="${ebayURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> eBay search
-                                    </a>
-                                </div>
                             </div>
                         </div>
 
