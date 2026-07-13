@@ -1,3 +1,5 @@
+modify my html to add these things (that email) and make standard texts for privacy policy and cookie polciy and terms of use
+
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -226,7 +228,7 @@
                     </div>
                     <h3 class="text-xl font-display font-bold text-white mb-2">Daily Quota Reached</h3>
                     <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        You have completed your daily limit of <strong class="text-white">3 searches</strong>. To prevent API abuse, searches are throttled per user IP address.
+                        You have completed your daily limit of <strong class="text-white">3 searches</strong>.
                     </p>
                     <div class="space-y-2">
                         <button onclick="toggleLockoutModal(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2.5 rounded-xl transition font-semibold">
@@ -260,18 +262,55 @@
     </div>
 
     <!-- Footer -->
-    <footer class="mt-auto border-t border-slate-900 bg-slate-950 py-8">
-        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center">
-            <p class="text-xs text-slate-500">
-                &copy; 2026 Seeklyo Product Scout. All rights reserved.
-            </p>
-            <p class="text-xs text-slate-500 mt-2 sm:mt-0 flex items-center justify-center gap-1">
-                Safe Shopping • No tracking • AI recommendation engine
-            </p>
-        </div>
-    </footer>
+<footer class="mt-auto border-t border-slate-900 bg-slate-950 py-8">
+<div class="max-w-5xl mx-auto px-4 text-center">
+<p class="text-sm text-slate-400">
+Contact:
+<a href="mailto:nick.aicommercetech@gmail.com" class="text-blue-400 hover:text-blue-300">nick.aicommercetech@gmail.com</a>
+</p>
 
-    <!-- Firebase SDK Imports -->
+<div class="mt-4 flex justify-center items-center text-sm text-slate-500">
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('privacy-modal',true)">Privacy Policy</button>
+<span class="h-5 border-l border-slate-700"></span>
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('terms-modal',true)">Terms of Use</button>
+<span class="h-5 border-l border-slate-700"></span>
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('cookies-modal',true)">Cookies Policy</button>
+</div>
+</div>
+</footer>
+
+    
+<script>
+function toggleLegalModal(id,show){
+ const m=document.getElementById(id);
+ if(!m) return;
+ m.classList.toggle('hidden',!show);
+}
+</script>
+
+<div id="privacy-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Privacy Policy</h2>
+<p>Seeklyo uses your search queries to provide AI product recommendations. We may process your IP address, approximate location, browser information, local storage data, and usage statistics to operate the service, prevent abuse, and enforce daily limits. We use services including Cloudflare, Firebase, Google Gemini, and IP geolocation providers. Product links lead to third-party retailers with their own privacy policies.</p>
+<button onclick="toggleLegalModal('privacy-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<div id="terms-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Terms of Use</h2>
+<p>Seeklyo provides AI-generated product recommendations for informational purposes only. Prices, availability and specifications may change at any time. Purchases are made directly with third-party retailers. Seeklyo is not responsible for retailer content, products, shipping, warranties or transactions.</p>
+<button onclick="toggleLegalModal('terms-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<div id="cookies-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Cookies Policy</h2>
+<p>Seeklyo uses browser storage (including localStorage) and essential cookies where necessary to remember saved products, maintain usage limits, improve functionality and protect the service. You can remove these through your browser settings, although some features may stop working correctly.</p>
+<button onclick="toggleLegalModal('cookies-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<!-- Firebase SDK Imports -->
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
