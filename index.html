@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatYouWant // AI Product Scout</title>
+    <title>Seeklyo // AI Product Scout</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -72,7 +72,7 @@
                     <i data-lucide="compass" class="w-5 h-5 text-white"></i>
                 </div>
                 <div class="flex flex-col justify-center">
-                    <span class="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-500 bg-clip-text text-transparent leading-none">WhatYouWant.</span>
+                    <span class="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-500 bg-clip-text text-transparent leading-none">Seeklyo.</span>
                     <span class="text-[9px] uppercase tracking-widest text-brand-400 font-extrabold mt-0.5 leading-none">Beta</span>
                 </div>
             </div>
@@ -184,7 +184,7 @@
 
         <!-- How It Works Section -->
         <section id="how-it-works" class="mt-24 pt-12 border-t border-slate-800/80">
-            <h2 class="font-display font-bold text-2xl text-center text-white mb-2">How "WhatYouWant" Works</h2>
+            <h2 class="font-display font-bold text-2xl text-center text-white mb-2">How "Seeklyo" Works</h2>
             <p class="text-center text-slate-400 text-sm max-w-md mx-auto mb-10">Using state-of-the-art AI to connect your wishes with actual products.</p>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -263,7 +263,7 @@
     <footer class="mt-auto border-t border-slate-900 bg-slate-950 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center">
             <p class="text-xs text-slate-500">
-                &copy; 2026 WhatYouWant Product Scout. All rights reserved.
+                &copy; 2026 Seeklyo Product Scout. All rights reserved.
             </p>
             <p class="text-xs text-slate-500 mt-2 sm:mt-0 flex items-center justify-center gap-1">
                 Safe Shopping • No tracking • AI recommendation engine
@@ -285,7 +285,7 @@
         let currentDayLimitData = { count: 0, date: "" };
 
         // Read dynamic variables from environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'whatyouwant-scout';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'Seeklyo-scout';
 
         // Initialize Firebase cleanly with fallback
         async function initCloudLimiter() {
@@ -629,7 +629,7 @@
         // Dedicated API Scout Worker Query
         async function callGeminiScout(userQuery) {
             const workerUrl =
-                "https://whatyouwant-api.nick-aicommercetech.workers.dev/";
+                "https://Seeklyo-api.nick-aicommercetech.workers.dev/";
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000);
