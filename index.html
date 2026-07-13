@@ -147,6 +147,7 @@
             
             <h3 class="text-xl font-display font-bold text-white mb-2" id="loading-title">Deploying Scouts</h3>
             <p class="text-slate-400 text-sm max-w-md mx-auto" id="loading-subtitle">Querying e-commerce catalogs and scouring live search results...</p>
+            <p class="text-slate-500 text-xs mt-3" id="loading-elapsed">Elapsed: 0.0s</p>
         </div>
 
         <!-- Search Results Grid -->
@@ -443,6 +444,8 @@
 
     <script>
         let savedProducts = [];
+        let loadingTimerId = null;
+        let loadingStartedAt = 0;
 
         // Initialize Lucide Icons
         window.addEventListener('DOMContentLoaded', () => {
@@ -472,8 +475,7 @@
         // Search Handlers
         async function handleSearch(event) {
             event.preventDefault();
-            
-            // Check usage limit first
+
             if (window.isSearchAllowed && !window.isSearchAllowed()) {
                 return;
             }
@@ -482,25 +484,58 @@
             if (!query) return;
 
             setUIState('loading');
-            
+            startLoadingTimer();
+
             try {
-                // Get matching products immediately without simulated step delays
                 const results = await callGeminiScout(query);
-                
-                // Render products
+
                 renderResults(results);
                 setUIState('results');
-                showToast(`Scout discovered ${results.products.length} products matching your criteria!`, "success");
-                
-                // Track usage only on successful API returns
+
+                const elapsed = ((performance.now() - loadingStartedAt) / 1000).toFixed(1);
+                showToast(`Found ${results.products.length} products in ${elapsed}s`, "success");
+
                 if (window.registerScoutSuccess) {
                     await window.registerScoutSuccess();
                 }
-                
             } catch (err) {
                 console.error(err);
                 setUIState('idle');
-                showToast(err.message || "Failed to scout the web. Please verify details and try again.", "error");
+                showToast(err.message || "Failed to scout the web. Please try again.", "error");
+            } finally {
+                stopLoadingTimer();
+            }
+        }
+
+        function startLoadingTimer() {
+            stopLoadingTimer();
+            loadingStartedAt = performance.now();
+            const elapsedNode = document.getElementById('loading-elapsed');
+            const subtitleNode = document.getElementById('loading-subtitle');
+
+            const update = () => {
+                const seconds = (performance.now() - loadingStartedAt) / 1000;
+                if (elapsedNode) elapsedNode.textContent = `Elapsed: ${seconds.toFixed(1)}s`;
+
+                if (subtitleNode) {
+                    if (seconds < 8) {
+                        subtitleNode.textContent = 'Searching live product listings...';
+                    } else if (seconds < 20) {
+                        subtitleNode.textContent = 'Comparing products, prices and stores...';
+                    } else {
+                        subtitleNode.textContent = 'Live web research can take a little longer for detailed searches...';
+                    }
+                }
+            };
+
+            update();
+            loadingTimerId = setInterval(update, 100);
+        }
+
+        function stopLoadingTimer() {
+            if (loadingTimerId !== null) {
+                clearInterval(loadingTimerId);
+                loadingTimerId = null;
             }
         }
 
@@ -539,11 +574,12 @@
             showToast("Search cleared.", "info");
         }
 
-        // Robust link builder fallback to ensure 100% active, highly qualified target search URLs
-        function createReliableLink(provider, productName) {
+        // Robust link builder fallback with dynamic domain resolver to ensure 100% active target merchant search URLs
+        function createReliableLink(provider, productName, originalBuyLink) {
             const encodedName = encodeURIComponent(productName);
             const provLower = provider.toLowerCase().trim();
             
+            // Major explicit store list (guaranteed search parameters)
             if (provLower.includes('bol.com') || provLower.includes('bol')) {
                 return `https://www.bol.com/nl/nl/s/?searchtext=${encodedName}`;
             } else if (provLower.includes('coolblue')) {
@@ -556,8 +592,37 @@
                 return `https://www.aliexpress.com/wholesale?SearchText=${encodedName}`;
             } else if (provLower.includes('ebay')) {
                 return `https://www.ebay.com/sch/i.html?_nkw=${encodedName}`;
+            }
+            
+            // Dynamic Resolver: Extract origin domain from verified buyLink to target custom platforms (HEMA, Xenos, Etsy, etc.)
+            let baseDomain = "";
+            if (originalBuyLink && originalBuyLink.startsWith('http')) {
+                try {
+                    const urlObj = new URL(originalBuyLink);
+                    baseDomain = urlObj.origin; 
+                } catch (e) {}
+            }
+            
+            // Fallback guesser from provider name if deep link domain parser fails
+            if (!baseDomain) {
+                let cleanProv = provLower.replace(/[^a-z0-9]/g, '');
+                if (provLower.includes('.nl')) {
+                    baseDomain = `https://www.${cleanProv.replace('nl', '')}.nl`;
+                } else if (provLower.includes('.be')) {
+                    baseDomain = `https://www.${cleanProv.replace('be', '')}.be`;
+                } else if (provLower.includes('.com')) {
+                    baseDomain = `https://www.${cleanProv.replace('com', '')}.com`;
+                } else {
+                    baseDomain = `https://www.${cleanProv}.com`;
+                }
+            }
+            
+            // Construct target-specific internal search endpoints to bypass Google completely
+            const isDutch = baseDomain.endsWith('.nl') || baseDomain.endsWith('.be') || provLower.includes('.nl') || provLower.includes('.be');
+            if (isDutch) {
+                return `${baseDomain}/zoeken?q=${encodedName}`;
             } else {
-                return `https://www.google.com/search?q=${encodedName}`;
+                return `${baseDomain}/search?q=${encodedName}`;
             }
         }
 
@@ -566,45 +631,44 @@
             const workerUrl =
                 "https://whatyouwant-api.nick-aicommercetech.workers.dev/";
 
-            const maxRetries = 3;
-            let retryDelay = 1000;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            const requestStartedAt = performance.now();
 
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    const response = await fetch(workerUrl, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            query: userQuery
-                        })
-                    });
+            try {
+                const response = await fetch(workerUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ query: userQuery }),
+                    signal: controller.signal
+                });
 
-                    const result = await response.json().catch(() => ({}));
+                const result = await response.json().catch(() => ({}));
+                const duration = ((performance.now() - requestStartedAt) / 1000).toFixed(1);
+                console.log(`Scout API request completed in ${duration}s`);
 
-                    if (!response.ok) {
-                        throw new Error(
-                            result.error || `Server error: HTTP ${response.status}`
-                        );
-                    }
-
-                    if (!Array.isArray(result.products)) {
-                        throw new Error(
-                            "The server returned an invalid product response."
-                        );
-                    }
-
-                    return result;
-
-                } catch (error) {
-                    if (attempt === maxRetries) {
-                        throw error;
-                    }
-
-                    await delay(retryDelay);
-                    retryDelay *= 2;
+                if (!response.ok) {
+                    throw new Error(
+                        result.error || `Server error: HTTP ${response.status}`
+                    );
                 }
+
+                if (!Array.isArray(result.products)) {
+                    throw new Error(
+                        "The server returned an invalid product response."
+                    );
+                }
+
+                return result;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('The search took longer than 60 seconds. Please try a more specific request.');
+                }
+                throw error;
+            } finally {
+                clearTimeout(timeoutId);
             }
         }
 
@@ -631,15 +695,12 @@
                 const uniqueId = `prod-${Date.now()}-${idx}`;
                 const isSaved = savedProducts.some(p => p.name === product.name);
                 
-                // Formulate target search strings
+                // Formulate target search strings (only Amazon and eBay are kept)
                 const amazonURL = createReliableLink('amazon', product.name);
-                const aliExpressURL = createReliableLink('aliexpress', product.name);
                 const ebayURL = createReliableLink('ebay', product.name);
-                const bolURL = createReliableLink('bol', product.name);
 
-                // Primary buy link configuration: We ALWAYS use the search-query redirect link
-                // to completely eliminate 404 broken pages from LLM-hallucinated deep product IDs.
-                const primaryBuyLink = createReliableLink(product.sourceStore, product.name);
+                // Primary buy link configuration: dynamically target the verified base store's search query (Never falls back to Google search page)
+                const primaryBuyLink = createReliableLink(product.sourceStore, product.name, product.buyLink);
 
                 // Create SVG icon and colors based on store
                 let storeIcon = "shopping-bag";
@@ -696,14 +757,8 @@
                             <div class="space-y-2 pt-2">
                                 <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block">Alternate Quick Shop Links</span>
                                 <div class="grid grid-cols-2 gap-1.5">
-                                    <a href="${bolURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Bol.com search
-                                    </a>
                                     <a href="${amazonURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Amazon search
-                                    </a>
-                                    <a href="${aliExpressURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> AliExpress
                                     </a>
                                     <a href="${ebayURL}" target="_blank" rel="noopener noreferrer" class="text-[11px] bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-lg p-2 flex items-center gap-1.5 justify-center transition">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> eBay search
@@ -828,7 +883,7 @@
 
         function renderFavorites() {
             const flexBuyUrl = (item) => {
-                return createReliableLink(item.sourceStore, item.name);
+                return createReliableLink(item.sourceStore, item.name, item.buyLink);
             };
 
             const favList = document.getElementById('favorites-list');
