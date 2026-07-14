@@ -226,7 +226,7 @@
                     </div>
                     <h3 class="text-xl font-display font-bold text-white mb-2">Daily Quota Reached</h3>
                     <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        You have completed your daily limit of <strong class="text-white">3 searches</strong>.
+                        You have completed your daily limit of <strong class="text-white">10 searches</strong>.
                     </p>
                     <div class="space-y-2">
                         <button onclick="toggleLockoutModal(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2.5 rounded-xl transition font-semibold">
@@ -443,17 +443,18 @@ function toggleLegalModal(id,show){
             const badge = document.getElementById('quota-badge');
             if (!badge) return;
             
-            const remaining = Math.max(0, 3 - currentDayLimitData.count);
+            const DAILY_LIMIT = 10;
+            const remaining = Math.max(0, DAILY_LIMIT - currentDayLimitData.count);
             badge.innerHTML = `
                 <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-400"></i>
-                <span>Usage: ${currentDayLimitData.count}/3 searches today</span>
+                <span>Usage: ${currentDayLimitData.count}/${DAILY_LIMIT} searches today</span>
             `;
             lucide.createIcons();
 
             // Disable or enable Search CTA depending on quota
             const searchBtn = document.getElementById('submit-btn');
-            if (currentDayLimitData.count >= 3) {
-                searchBtn.innerHTML = `<span>Quota Reached (3/3)</span> <i data-lucide="lock" class="w-4 h-4"></i>`;
+            if (currentDayLimitData.count >= DAILY_LIMIT) {
+                searchBtn.innerHTML = `<span>Quota Reached (${DAILY_LIMIT}/${DAILY_LIMIT})</span> <i data-lucide="lock" class="w-4 h-4"></i>`;
                 searchBtn.className = "bg-slate-800 border border-slate-700/60 text-slate-500 font-medium px-6 py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap";
             } else {
                 searchBtn.innerHTML = `<span>Scout Now</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
@@ -464,7 +465,7 @@ function toggleLegalModal(id,show){
 
         // Intercept global handleSearch for quota validations
         window.isSearchAllowed = function() {
-            if (currentDayLimitData.count >= 3) {
+            if (currentDayLimitData.count >= DAILY_LIMIT) {
                 toggleLockoutModal(true);
                 return false;
             }
