@@ -734,7 +734,7 @@ function toggleLegalModal(id,show){
                 const isSaved = savedProducts.some(p => p.name === product.name);
 
                 // Primary buy link configuration: dynamically target the verified base store's search query (Never falls back to Google search page)
-                const primaryBuyLink = createReliableLink(product.sourceStore, product.name, product.buyLink);
+                const primaryBuyLink = product.buyLink;
 
                 // Create SVG icon and colors based on store
                 let storeIcon = "shopping-bag";
