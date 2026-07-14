@@ -320,6 +320,7 @@ function toggleLegalModal(id,show){
         let user = null;
         let clientIp = null;
         let currentDayLimitData = { count: 0, date: "" };
+        const DAILY_LIMIT = 10;
 
         // Read dynamic variables from environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'Seeklyo-scout';
@@ -443,7 +444,6 @@ function toggleLegalModal(id,show){
             const badge = document.getElementById('quota-badge');
             if (!badge) return;
             
-            const DAILY_LIMIT = 10;
             const remaining = Math.max(0, DAILY_LIMIT - currentDayLimitData.count);
             badge.innerHTML = `
                 <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-400"></i>
