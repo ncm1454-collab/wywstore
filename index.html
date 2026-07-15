@@ -527,15 +527,24 @@ function toggleLegalModal(id,show){
             try {
                 const results = await callGeminiScout(query);
 
+                if (results.quota) {
+                  currentDayLimitData = {
+                    count: results.quota.used,
+                    date: new Date()
+                      .toISOString()
+                      .split("T")[0],
+                  };
+                
+                  updateUsageUI();
+                }
+
                 renderResults(results);
                 setUIState('results');
 
                 const elapsed = ((performance.now() - loadingStartedAt) / 1000).toFixed(1);
                 showToast(`Found ${results.products.length} products in ${elapsed}s`, "success");
 
-                if (window.registerScoutSuccess) {
-                    await window.registerScoutSuccess();
-                }
+                
             } catch (err) {
                 console.error(err);
                 setUIState('idle');
@@ -688,10 +697,33 @@ function toggleLegalModal(id,show){
                 console.log(`Scout API request completed in ${duration}s`);
 
                 if (!response.ok) {
-                    throw new Error(
-                        result.error || `Server error: HTTP ${response.status}`
-                    );
-                }
+  if (
+    response.status === 429 &&
+    result.code === "DAILY_LIMIT_REACHED"
+  ) {
+    if (result.quota) {
+      currentDayLimitData = {
+        count: result.quota.used,
+        date: new Date()
+          .toISOString()
+          .split("T")[0],
+      };
+
+      updateUsageUI();
+    }
+
+    toggleLockoutModal(true);
+
+    throw new Error(
+      "Daily search limit reached."
+    );
+  }
+
+  throw new Error(
+    result.error ||
+    `Server error: HTTP ${response.status}`
+  );
+}
 
                 if (!Array.isArray(result.products)) {
                     throw new Error(
