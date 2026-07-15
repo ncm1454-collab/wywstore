@@ -546,17 +546,6 @@ function toggleLegalModal(id,show){
     window.applyServerQuota(results.quota);
 }
 
-                if (results.quota) {
-                  currentDayLimitData = {
-                    count: results.quota.used,
-                    date: new Date()
-                      .toISOString()
-                      .split("T")[0],
-                  };
-                
-                  updateUsageUI();
-                }
-
                 renderResults(results);
                 setUIState('results');
 
