@@ -463,6 +463,21 @@ function toggleLegalModal(id,show){
             lucide.createIcons();
         }
 
+        window.applyServerQuota = function(quota) {
+    if (!quota) return;
+
+    currentDayLimitData = {
+        count: Number(quota.used) || 0,
+        date: new Date().toISOString().split('T')[0],
+    };
+
+    localStorage.setItem(
+        'wyw_local_quota',
+        JSON.stringify(currentDayLimitData)
+    );
+
+    updateUsageUI();
+};
         // Intercept global handleSearch for quota validations
         window.isSearchAllowed = function() {
             if (currentDayLimitData.count >= DAILY_LIMIT) {
@@ -526,6 +541,10 @@ function toggleLegalModal(id,show){
 
             try {
                 const results = await callGeminiScout(query);
+
+                if (results.quota && window.applyServerQuota) {
+    window.applyServerQuota(results.quota);
+}
 
                 if (results.quota) {
                   currentDayLimitData = {
@@ -701,15 +720,8 @@ function toggleLegalModal(id,show){
     response.status === 429 &&
     result.code === "DAILY_LIMIT_REACHED"
   ) {
-    if (result.quota) {
-      currentDayLimitData = {
-        count: result.quota.used,
-        date: new Date()
-          .toISOString()
-          .split("T")[0],
-      };
-
-      updateUsageUI();
+    if (result.quota && window.applyServerQuota) {
+      window.applyServerQuota(result.quota);
     }
 
     toggleLockoutModal(true);
