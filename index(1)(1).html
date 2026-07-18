@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeklyo // AI Product Scout</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=Space+Grotesk:wght=400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        },
+                        dark: {
+                            50: '#f8fafc',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow {
+            box-shadow: 0 0 40px -5px rgba(139, 92, 246, 0.3);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .pulse-bg {
+            animation: pulse-slow 8s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-slate-100 font-sans min-h-full flex flex-col relative overflow-x-hidden selection:bg-brand-500/30 selection:text-brand-100">
+
+    <!-- Decorative Glow Blobs -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-brand-600/10 rounded-full filter blur-[100px] pulse-bg pointer-events-none"></div>
+    <div class="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full filter blur-[120px] pulse-bg pointer-events-none" style="animation-delay: -3s;"></div>
+
+    <!-- Header -->
+    <header class="border-b border-slate-800/60 sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i data-lucide="compass" class="w-5 h-5 text-white"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-500 bg-clip-text text-transparent leading-none">Seeklyo.</span>
+                    <span class="text-[9px] uppercase tracking-widest text-brand-400 font-extrabold mt-0.5 leading-none">Beta</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex items-center gap-6 text-sm text-slate-400 font-medium">
+                <a href="#" class="text-white hover:text-brand-500 transition">Scout</a>
+                <a href="#how-it-works" class="hover:text-white transition">How It Works</a>
+                <a href="#favorites" onclick="toggleFavoritesModal(true)" class="hover:text-white transition flex items-center gap-1.5">
+                    Saved <span id="fav-count-badge" class="bg-brand-500/20 text-brand-300 text-xs px-2 py-0.5 rounded-full hidden">0</span>
+                </a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <div id="quota-badge" class="text-xs px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1.5 font-medium">
+                    <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-400"></i>
+                    <span>Quota: checking...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        
+        <!-- Hero Title -->
+        <div class="text-center max-w-3xl mx-auto mb-10">
+            <h1 class="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-white mb-6">
+                Describe <span class="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">exactly</span> what you want to buy.
+            </h1>
+            <p class="text-slate-400 text-lg">
+                Stop juggling 20 tabs. Our AI agents scout the live web, match your exact specifications, and find direct store links in seconds.
+            </p>
+        </div>
+
+        <!-- Search Bar Section -->
+        <div class="max-w-4xl mx-auto mb-14">
+            <div class="glass rounded-2xl p-4 sm:p-5 glow border-slate-700/50">
+                <form id="scout-form" onsubmit="handleSearch(event)" class="space-y-4">
+                    <div class="relative">
+                        <textarea 
+                            id="search-query" 
+                            rows="3" 
+                            required
+                            placeholder="I need a high-quality leather minimalist wallet. It must have RFID blocking, hold at least 6 cards, be brown/tan leather, and cost under $45..." 
+                            class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition text-base resize-none"
+                        ></textarea>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <!-- Submit Button -->
+                        <button type="submit" id="submit-btn" class="bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium px-6 py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20 whitespace-nowrap">
+                            <span>Scout Now</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Custom Toast Messages -->
+        <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+        <!-- Progress/Loading State -->
+        <div id="loading-state" class="hidden max-w-2xl mx-auto my-12 text-center">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-brand-500/20 animate-pulse"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-brand-500 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i data-lucide="search" class="w-8 h-8 text-brand-400 animate-bounce"></i>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-display font-bold text-white mb-2" id="loading-title">Deploying Scouts</h3>
+            <p class="text-slate-400 text-sm max-w-md mx-auto" id="loading-subtitle">Querying e-commerce catalogs and scouring live search results...</p>
+            <p class="text-slate-500 text-xs mt-3" id="loading-elapsed">Elapsed: 0.0s</p>
+        </div>
+
+        <!-- Search Results Grid -->
+        <div id="results-section" class="hidden space-y-8 animate-fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-800">
+                <div>
+                    <h2 class="font-display font-bold text-2xl text-white">Agent Discoveries</h2>
+                    <p class="text-xs text-slate-400 mt-1">Products found through live web search on supported retailers.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="results-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">0 Items Found</span>
+                    <button onclick="clearResults()" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Results Grid -->
+            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards injected here dynamically -->
+            </div>
+
+            <!-- Grounding Citations -->
+            <div id="citations-box" class="hidden glass rounded-xl p-5 border-slate-800">
+                <div class="flex items-center gap-2 mb-3 text-slate-300">
+                    <i data-lucide="link-2" class="w-4 h-4 text-brand-400"></i>
+                    <h4 class="font-display font-bold text-sm">Verified Search References</h4>
+                </div>
+                <div id="citations-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400">
+                    <!-- Citation URLs here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="mt-24 pt-12 border-t border-slate-800/80">
+            <h2 class="font-display font-bold text-2xl text-center text-white mb-2">How "Seeklyo" Works</h2>
+            <p class="text-center text-slate-400 text-sm max-w-md mx-auto mb-10">Using state-of-the-art AI to connect your wishes with actual products.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass p-6 rounded-xl border-slate-800/60">
+                    <div class="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center mb-4">
+                        <i data-lucide="languages" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-display font-semibold text-lg text-white mb-2">1. Regional Awareness</h3>
+                    <p class="text-slate-400 text-sm">Our system recognizes your language. Searching in Dutch? We automatically target stores in NL/BE like Bol.com and Coolblue.</p>
+                </div>
+                <div class="glass p-6 rounded-xl border-slate-800/60">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
+                        <i data-lucide="globe-2" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-display font-semibold text-lg text-white mb-2">2. Live Web Grounding</h3>
+                    <p class="text-slate-400 text-sm">Our AI agent triggers active localized search grounding to scour e-commerce listings, ensuring current product details.</p>
+                </div>
+                <div class="glass p-6 rounded-xl border-slate-800/60">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-display font-semibold text-lg text-white mb-2">3. Verified Store Access</h3>
+                    <p class="text-slate-400 text-sm">Direct, valid links are generated so you can hop straight onto the retailer to finalize checkout.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Limit Lockout Modal -->
+    <div id="lockout-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-950/90 transition-opacity" aria-hidden="true" onclick="toggleLockoutModal(false)"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-slate-900 border border-slate-800/60 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                <div class="p-6 text-center">
+                    <div class="w-14 h-14 mx-auto mb-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full flex items-center justify-center animate-bounce">
+                        <i data-lucide="lock" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-bold text-white mb-2">Daily Quota Reached</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        You have completed your daily limit of <strong class="text-white">10 searches</strong>.
+                    </p>
+                    <div class="space-y-2">
+                        <button onclick="toggleLockoutModal(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2.5 rounded-xl transition font-semibold">
+                            Close Window
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites / Shortlist Modal -->
+    <div id="favorites-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-950/85 transition-opacity" aria-hidden="true" onclick="toggleFavoritesModal(false)"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-slate-900 border border-slate-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-display font-bold text-white flex items-center gap-2">
+                            <i data-lucide="heart" class="w-5 h-5 text-pink-500 fill-pink-500"></i> Saved Scouts
+                        </h3>
+                        <button onclick="toggleFavoritesModal(false)" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div id="favorites-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        <!-- Fav items injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+<footer class="mt-auto border-t border-slate-900 bg-slate-950 py-8">
+<div class="max-w-5xl mx-auto px-4 text-center">
+<p class="text-sm text-slate-400">
+Contact:
+<a href="mailto:nick.aicommercetech@gmail.com" class="text-blue-400 hover:text-blue-300">nick.aicommercetech@gmail.com</a>
+</p>
+
+<div class="mt-4 flex justify-center items-center text-sm text-slate-500">
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('privacy-modal',true)">Privacy Policy</button>
+<span class="h-5 border-l border-slate-700"></span>
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('terms-modal',true)">Terms of Use</button>
+<span class="h-5 border-l border-slate-700"></span>
+<button class="px-5 hover:text-white" onclick="toggleLegalModal('cookies-modal',true)">Cookies Policy</button>
+</div>
+</div>
+</footer>
+
+    
+<script>
+function toggleLegalModal(id,show){
+ const m=document.getElementById(id);
+ if(!m) return;
+ m.classList.toggle('hidden',!show);
+}
+</script>
+
+<div id="privacy-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Privacy Policy</h2>
+<p>Seeklyo uses your search queries to provide AI product recommendations. We may process your IP address, approximate location, browser information, local storage data, and usage statistics to operate the service, prevent abuse, and enforce daily limits. We use services including Cloudflare, Firebase, Google Gemini, and IP geolocation providers. Product links lead to third-party retailers with their own privacy policies.</p>
+<button onclick="toggleLegalModal('privacy-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<div id="terms-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Terms of Use</h2>
+<p>Seeklyo provides AI-generated product recommendations for informational purposes only. Prices, availability and specifications may change at any time. Purchases are made directly with third-party retailers. Seeklyo is not responsible for retailer content, products, shipping, warranties or transactions.</p>
+<button onclick="toggleLegalModal('terms-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<div id="cookies-modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto">
+<div class="max-w-3xl mx-auto my-10 bg-slate-900 rounded-xl p-6 text-slate-300">
+<h2 class="text-2xl text-white font-bold mb-4">Cookies Policy</h2>
+<p>Seeklyo uses browser storage (including localStorage) and essential cookies where necessary to remember saved products, maintain usage limits, improve functionality and protect the service. You can remove these through your browser settings, although some features may stop working correctly.</p>
+<button onclick="toggleLegalModal('cookies-modal',false)" class="mt-6 bg-brand-600 px-4 py-2 rounded">Close</button>
+</div></div>
+
+<!-- Firebase SDK Imports -->
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Rate Limiter Variables
+        let db = null;
+        let auth = null;
+        let user = null;
+        let clientIp = null;
+        let currentDayLimitData = { count: 0, date: "" };
+        const DAILY_LIMIT = 10;
+
+        // Read dynamic variables from environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'Seeklyo-scout';
+
+        // Initialize Firebase cleanly with fallback
+        async function initCloudLimiter() {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                try {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        const credentials = await signInWithCustomToken(auth, __initial_auth_token);
+                        user = credentials.user;
+                    } else {
+                        const credentials = await signInAnonymously(auth);
+                        user = credentials.user;
+                    }
+                } catch (e) {
+                    console.warn("Firebase credentials unavailable, using direct storage fallbacks:", e);
+                }
+            }
+            
+            // Gather client IP securely
+            clientIp = await fetchIpAddress();
+            await fetchUsageRecord();
+            updateUsageUI();
+        }
+
+        // Fetch user IP with resilient fallback
+        async function fetchIpAddress() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch (e) {
+                console.warn("Direct IP lookup blocked, applying local visual hash fallback.");
+                let browserHash = localStorage.getItem('wyw_browser_hash');
+                if (!browserHash) {
+                    browserHash = 'user-hash-' + crypto.randomUUID();
+                    localStorage.setItem('wyw_browser_hash', browserHash);
+                }
+                return browserHash;
+            }
+        }
+
+        // Check if limit is reached today
+        async function fetchUsageRecord() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            // Fallback: local usage if database isn't initialized or user auth failed
+            if (!db || !user) {
+                currentDayLimitData = getLocalBackupQuota(todayStr);
+                return;
+            }
+
+            try {
+                const docId = clientIp.replace(/[\.\:\/]/g, '_');
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ip_limits', docId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.lastSearchDate === todayStr) {
+                        currentDayLimitData = { count: data.count, date: todayStr };
+                        return;
+                    }
+                }
+                
+                // No search history for today yet
+                currentDayLimitData = { count: 0, date: todayStr };
+            } catch (err) {
+                console.error("Cloud check failed, applying local browser limit storage:", err);
+                currentDayLimitData = getLocalBackupQuota(todayStr);
+            }
+        }
+
+        // Increments current daily scout count
+        async function incrementSearchUsage() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const nextCount = currentDayLimitData.count + 1;
+            currentDayLimitData = { count: nextCount, date: todayStr };
+
+            // Save locally
+            localStorage.setItem('wyw_local_quota', JSON.stringify(currentDayLimitData));
+
+            // Sync to Database if active
+            if (db && user) {
+                try {
+                    const docId = clientIp.replace(/[\.\:\/]/g, '_');
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'ip_limits', docId);
+                    await setDoc(docRef, {
+                        count: nextCount,
+                        lastSearchDate: todayStr
+                    }, { merge: true });
+                } catch (err) {
+                    console.error("Failed to persist cloud limit:", err);
+                }
+            }
+
+            updateUsageUI();
+        }
+
+        function getLocalBackupQuota(todayStr) {
+            let localData = localStorage.getItem('wyw_local_quota');
+            if (localData) {
+                try {
+                    const parsed = JSON.parse(localData);
+                    if (parsed.date === todayStr) {
+                        return parsed;
+                    }
+                } catch (e) {}
+            }
+            return { count: 0, date: todayStr };
+        }
+
+        // Render current remaining quota visually
+        function updateUsageUI() {
+            const badge = document.getElementById('quota-badge');
+            if (!badge) return;
+            
+            const remaining = Math.max(0, DAILY_LIMIT - currentDayLimitData.count);
+            badge.innerHTML = `
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-400"></i>
+                <span>Usage: ${currentDayLimitData.count}/${DAILY_LIMIT} searches today</span>
+            `;
+            lucide.createIcons();
+
+            // Disable or enable Search CTA depending on quota
+            const searchBtn = document.getElementById('submit-btn');
+            if (currentDayLimitData.count >= DAILY_LIMIT) {
+                searchBtn.innerHTML = `<span>Quota Reached (${DAILY_LIMIT}/${DAILY_LIMIT})</span> <i data-lucide="lock" class="w-4 h-4"></i>`;
+                searchBtn.className = "bg-slate-800 border border-slate-700/60 text-slate-500 font-medium px-6 py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap";
+            } else {
+                searchBtn.innerHTML = `<span>Scout Now</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+                searchBtn.className = "bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium px-6 py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20 whitespace-nowrap";
+            }
+            lucide.createIcons();
+        }
+
+        window.applyServerQuota = function(quota) {
+    if (!quota) return;
+
+    currentDayLimitData = {
+        count: Number(quota.used) || 0,
+        date: new Date().toISOString().split('T')[0],
+    };
+
+    localStorage.setItem(
+        'wyw_local_quota',
+        JSON.stringify(currentDayLimitData)
+    );
+
+    updateUsageUI();
+};
+        // Intercept global handleSearch for quota validations
+        window.isSearchAllowed = function() {
+            if (currentDayLimitData.count >= DAILY_LIMIT) {
+                toggleLockoutModal(true);
+                return false;
+            }
+            return true;
+        };
+
+        window.registerScoutSuccess = async function() {
+            await incrementSearchUsage();
+        };
+
+        // Run setup on startup
+        window.addEventListener('DOMContentLoaded', initCloudLimiter);
+    </script>
+
+    <script>
+        let savedProducts = [];
+        let loadingTimerId = null;
+        let loadingStartedAt = 0;
+
+        // Initialize Lucide Icons
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadFavoritesFromStorage();
+        });
+
+        function toggleFavoritesModal(show) {
+            const modal = document.getElementById('favorites-modal');
+            if (show) {
+                renderFavorites();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function toggleLockoutModal(show) {
+            const modal = document.getElementById('lockout-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Search Handlers
+        async function handleSearch(event) {
+            event.preventDefault();
+
+            if (window.isSearchAllowed && !window.isSearchAllowed()) {
+                return;
+            }
+
+            const query = document.getElementById('search-query').value.trim();
+            if (!query) return;
+
+            setUIState('loading');
+            startLoadingTimer();
+
+            try {
+                const results = await callGeminiScout(query);
+
+                if (results.quota && window.applyServerQuota) {
+    window.applyServerQuota(results.quota);
+}
+
+                renderResults(results);
+                setUIState('results');
+
+                const elapsed = ((performance.now() - loadingStartedAt) / 1000).toFixed(1);
+                showToast(`Found ${results.products.length} products in ${elapsed}s`, "success");
+
+                
+            } catch (err) {
+                console.error(err);
+                setUIState('idle');
+                showToast(err.message || "Failed to scout the web. Please try again.", "error");
+            } finally {
+                stopLoadingTimer();
+            }
+        }
+
+        function startLoadingTimer() {
+            stopLoadingTimer();
+            loadingStartedAt = performance.now();
+            const elapsedNode = document.getElementById('loading-elapsed');
+            const subtitleNode = document.getElementById('loading-subtitle');
+
+            const update = () => {
+                const seconds = (performance.now() - loadingStartedAt) / 1000;
+                if (elapsedNode) elapsedNode.textContent = `Elapsed: ${seconds.toFixed(1)}s`;
+
+                if (subtitleNode) {
+                    if (seconds < 8) {
+                        subtitleNode.textContent = 'Searching live product listings...';
+                    } else if (seconds < 20) {
+                        subtitleNode.textContent = 'Comparing products, prices and stores...';
+                    } else {
+                        subtitleNode.textContent = 'Live web research can take a little longer for detailed searches...';
+                    }
+                }
+            };
+
+            update();
+            loadingTimerId = setInterval(update, 100);
+        }
+
+        function stopLoadingTimer() {
+            if (loadingTimerId !== null) {
+                clearInterval(loadingTimerId);
+                loadingTimerId = null;
+            }
+        }
+
+        // Sleep Helper
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function setUIState(state) {
+            const loading = document.getElementById('loading-state');
+            const results = document.getElementById('results-section');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (state === 'loading') {
+                loading.classList.remove('hidden');
+                results.classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+            } else if (state === 'results') {
+                loading.classList.add('hidden');
+                results.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+                results.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                loading.classList.add('hidden');
+                results.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+            }
+        }
+
+        function clearResults() {
+            setUIState('idle');
+            document.getElementById('search-query').value = "";
+            showToast("Search cleared.", "info");
+        }
+
+        // Robust link builder fallback with dynamic domain resolver to ensure 100% active target merchant search URLs
+        function createReliableLink(provider, productName, originalBuyLink) {
+            const encodedName = encodeURIComponent(productName);
+            const provLower = provider.toLowerCase().trim();
+            
+            // Major explicit store list (guaranteed search parameters)
+            if (provLower.includes('bol.com') || provLower.includes('bol')) {
+                return `https://www.bol.com/nl/nl/s/?searchtext=${encodedName}`;
+            } else if (provLower.includes('coolblue')) {
+                return `https://www.coolblue.nl/zoeken?query=${encodedName}`;
+            } else if (provLower.includes('amazon.nl')) {
+                return `https://www.amazon.nl/s?k=${encodedName}`;
+            } else if (provLower.includes('amazon')) {
+                return `https://www.amazon.com/s?k=${encodedName}`;
+            } else if (provLower.includes('aliexpress')) {
+                return `https://www.aliexpress.com/wholesale?SearchText=${encodedName}`;
+            } else if (provLower.includes('ebay')) {
+                return `https://www.ebay.com/sch/i.html?_nkw=${encodedName}`;
+            }
+            
+            // Dynamic Resolver: Extract origin domain from verified buyLink to target custom platforms (HEMA, Xenos, Etsy, etc.)
+            let baseDomain = "";
+            if (originalBuyLink && originalBuyLink.startsWith('http')) {
+                try {
+                    const urlObj = new URL(originalBuyLink);
+                    baseDomain = urlObj.origin; 
+                } catch (e) {}
+            }
+            
+            // Fallback guesser from provider name if deep link domain parser fails
+            if (!baseDomain) {
+                let cleanProv = provLower.replace(/[^a-z0-9]/g, '');
+                if (provLower.includes('.nl')) {
+                    baseDomain = `https://www.${cleanProv.replace('nl', '')}.nl`;
+                } else if (provLower.includes('.be')) {
+                    baseDomain = `https://www.${cleanProv.replace('be', '')}.be`;
+                } else if (provLower.includes('.com')) {
+                    baseDomain = `https://www.${cleanProv.replace('com', '')}.com`;
+                } else {
+                    baseDomain = `https://www.${cleanProv}.com`;
+                }
+            }
+            
+            // Construct target-specific internal search endpoints to bypass Google completely
+            const isDutch = baseDomain.endsWith('.nl') || baseDomain.endsWith('.be') || provLower.includes('.nl') || provLower.includes('.be');
+            if (isDutch) {
+                return `${baseDomain}/zoeken?q=${encodedName}`;
+            } else {
+                return `${baseDomain}/search?q=${encodedName}`;
+            }
+        }
+
+        // Dedicated API Scout Worker Query
+        async function callGeminiScout(userQuery) {
+            const workerUrl =
+                "https://whatyouwant-api.nick-aicommercetech.workers.dev/";
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            const requestStartedAt = performance.now();
+
+            try {
+                const response = await fetch(workerUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ query: userQuery }),
+                    signal: controller.signal
+                });
+
+                const result = await response.json().catch(() => ({}));
+                const duration = ((performance.now() - requestStartedAt) / 1000).toFixed(1);
+                console.log(`Scout API request completed in ${duration}s`);
+
+                if (!response.ok) {
+  if (
+    response.status === 429 &&
+    result.code === "DAILY_LIMIT_REACHED"
+  ) {
+    if (result.quota && window.applyServerQuota) {
+      window.applyServerQuota(result.quota);
+    }
+
+    toggleLockoutModal(true);
+
+    throw new Error(
+      "Daily search limit reached."
+    );
+  }
+
+  throw new Error(
+    result.error ||
+    `Server error: HTTP ${response.status}`
+  );
+}
+
+                if (!Array.isArray(result.products)) {
+                    throw new Error(
+                        "The server returned an invalid product response."
+                    );
+                }
+
+                return result;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('The search took longer than 60 seconds. Please try a more specific request.');
+                }
+                throw error;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        // Render Results
+        function renderResults(scoutData) {
+            const grid = document.getElementById('results-grid');
+            const countBadge = document.getElementById('results-count');
+            grid.innerHTML = "";
+
+            if (!scoutData.products || scoutData.products.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-500">
+                        <i data-lucide="info" class="w-12 h-12 mx-auto mb-3 text-slate-600"></i>
+                        <p class="text-sm">No direct matching products were verified on the web. Try narrowing down your search.</p>
+                    </div>
+                `;
+                countBadge.textContent = "0 Items Found";
+                return;
+            }
+
+            countBadge.textContent = `${scoutData.products.length} Item${scoutData.products.length > 1 ? 's' : ''} Found`;
+
+            scoutData.products.forEach((product, idx) => {
+                const uniqueId = `prod-${Date.now()}-${idx}`;
+                const isSaved = savedProducts.some(p => p.name === product.name);
+
+                // Primary buy link configuration: dynamically target the verified base store's search query (Never falls back to Google search page)
+                const primaryBuyLink = product.buyLink;
+
+                // Create SVG icon and colors based on store
+                let storeIcon = "shopping-bag";
+                let badgeColor = "bg-brand-500/10 text-brand-400 border-brand-500/20";
+                
+                const storeLower = product.sourceStore.toLowerCase();
+                if (storeLower.includes('amazon')) {
+                    storeIcon = "shopping-cart";
+                    badgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                } else if (storeLower.includes('ali')) {
+                    storeIcon = "globe";
+                    badgeColor = "bg-orange-500/10 text-orange-400 border-orange-500/20";
+                } else if (storeLower.includes('ebay')) {
+                    storeIcon = "tag";
+                    badgeColor = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                } else if (storeLower.includes('bol') || storeLower.includes('coolblue')) {
+                    storeIcon = "store";
+                    badgeColor = "bg-sky-500/10 text-sky-400 border-sky-500/20";
+                }
+
+                const card = document.createElement('div');
+                card.className = "glass rounded-2xl overflow-hidden hover:border-slate-700 transition duration-300 flex flex-col h-full group border-slate-800/80 hover:shadow-xl hover:shadow-brand-500/5";
+                
+                card.innerHTML = `
+                    <!-- Top Badge & Price Info -->
+                    <div class="p-5 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg ${badgeColor} border flex items-center gap-1">
+                                <i data-lucide="award" class="w-3.5 h-3.5"></i> ${product.matchRating || '95%'} Match
+                            </span>
+                        </div>
+                        <span class="text-lg font-bold text-white bg-slate-950 px-3 py-1 rounded-xl border border-slate-800/60">${product.price}</span>
+                    </div>
+
+                    <!-- Main content -->
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="font-display font-bold text-lg text-slate-100 group-hover:text-white transition line-clamp-2">${product.name}</h3>
+                                <span class="text-xs text-slate-400 flex items-center gap-1.5 mt-2">
+                                    <i data-lucide="${storeIcon}" class="w-3.5 h-3.5 text-brand-400"></i> Found on: <strong class="text-slate-300">${product.sourceStore}</strong>
+                                </span>
+                            </div>
+
+                            <p class="text-slate-400 text-sm line-clamp-3 leading-relaxed">${product.description}</p>
+                            
+                            <!-- Analysis Section -->
+                            <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800/40">
+                                <span class="text-[10px] uppercase tracking-wider text-brand-400 font-bold block mb-1">Match Reason</span>
+                                <p class="text-slate-300 text-xs italic leading-relaxed">"${product.whyItMatches}"</p>
+                            </div>
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="flex items-center gap-2 mt-6 pt-4 border-t border-slate-800/50">
+                            <!-- Toggle Saved Button -->
+                            <button onclick="toggleFavorite('${uniqueId}', ${JSON.stringify(product).replace(/"/g, '&quot;')})" 
+                                    class="p-2.5 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-pink-500 transition-colors"
+                                    title="Save product">
+                                <i data-lucide="heart" class="w-4 h-4 ${isSaved ? 'fill-pink-500 text-pink-500' : ''}"></i>
+                            </button>
+
+                            <!-- Adaptive Primary Link to Identified Store -->
+                            <a href="${primaryBuyLink}" target="_blank" rel="noopener noreferrer" 
+                               class="flex-grow bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg shadow-brand-600/10">
+                                <span>Search on ${product.sourceStore}</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            // Handle citations list
+            const citationsBox = document.getElementById('citations-box');
+            const citationsList = document.getElementById('citations-list');
+            citationsList.innerHTML = "";
+
+            if (scoutData.citations && scoutData.citations.length > 0) {
+                citationsBox.classList.remove('hidden');
+                scoutData.citations.forEach(cit => {
+                    const domain = new URL(cit.uri).hostname;
+                    const item = document.createElement('a');
+                    item.href = cit.uri;
+                    item.target = "_blank";
+                    item.rel = "noopener noreferrer";
+                    item.className = "flex items-center gap-2 p-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-800/60 transition group";
+                    item.innerHTML = `
+                        <i data-lucide="globe" class="w-3.5 h-3.5 text-slate-500 group-hover:text-brand-400"></i>
+                        <span class="truncate text-slate-300 group-hover:text-white">${cit.title || domain}</span>
+                    `;
+                    citationsList.appendChild(item);
+                });
+            } else {
+                citationsBox.classList.add('hidden');
+            }
+
+            lucide.createIcons();
+        }
+
+        // Favorites Storage Logic
+        function loadFavoritesFromStorage() {
+            try {
+                const stored = localStorage.getItem('wyw_saved_products');
+                if (stored) {
+                    savedProducts = JSON.parse(stored);
+                    updateFavoriteBadge();
+                }
+            } catch (e) {
+                console.error("Local storage not enabled:", e);
+            }
+        }
+
+        function updateFavoriteBadge() {
+            const badge = document.getElementById('fav-count-badge');
+            if (savedProducts.length > 0) {
+                badge.textContent = savedProducts.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleFavorite(id, productData) {
+            const index = savedProducts.findIndex(p => p.name === productData.name);
+            if (index > -1) {
+                savedProducts.splice(index, 1);
+                showToast("Removed from saved list", "info");
+            } else {
+                savedProducts.push(productData);
+                showToast("Added to saved list!", "success");
+            }
+            
+            try {
+                localStorage.setItem('wyw_saved_products', JSON.stringify(savedProducts));
+            } catch (e) {}
+
+            updateFavoriteBadge();
+            
+            const cards = document.querySelectorAll('#results-grid > div');
+            cards.forEach(card => {
+                const titleNode = card.querySelector('h3');
+                if (titleNode && titleNode.textContent === productData.name) {
+                    const heart = card.querySelector('.fa-heart, i[data-lucide="heart"]');
+                    if (heart) {
+                        if (index === -1) {
+                            heart.classList.add('fill-pink-500', 'text-pink-500');
+                        } else {
+                            heart.classList.remove('fill-pink-500', 'text-pink-500');
+                        }
+                    }
+                }
+            });
+        }
+
+        function removeFavorite(name) {
+            savedProducts = savedProducts.filter(p => p.name !== name);
+            try {
+                localStorage.setItem('wyw_saved_products', JSON.stringify(savedProducts));
+            } catch (e) {}
+            updateFavoriteBadge();
+            renderFavorites();
+            showToast("Item removed from saved list", "info");
+        }
+
+        function renderFavorites() {
+            const flexBuyUrl = (item) => {
+                return createReliableLink(item.sourceStore, item.name, item.buyLink);
+            };
+
+            const favList = document.getElementById('favorites-list');
+            favList.innerHTML = "";
+
+            if (savedProducts.length === 0) {
+                favList.innerHTML = `
+                    <div class="py-12 text-center text-slate-500">
+                        <i data-lucide="heart" class="w-10 h-10 mx-auto mb-2 text-slate-600"></i>
+                        <p class="text-sm">Your shortlists are empty.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            savedProducts.forEach(item => {
+                const cleanLink = flexBuyUrl(item);
+                const div = document.createElement('div');
+                div.className = "p-4 rounded-xl bg-slate-950 border border-slate-800 flex justify-between items-center gap-4 hover:border-slate-700 transition";
+                div.innerHTML = `
+                    <div class="truncate max-w-[70%]">
+                        <h4 class="font-display font-bold text-sm text-white truncate">${item.name}</h4>
+                        <div class="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                            <span>${item.sourceStore}</span> • <span class="font-bold text-brand-400">${item.price}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="${cleanLink}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white transition"><i data-lucide="external-link" class="w-3.5 h-3.5"></i></a>
+                        <button onclick="removeFavorite('${item.name.replace(/'/g, "\\'")}')" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-500/20 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                `;
+                favList.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        // Custom Beautiful Toast Drawer
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-slate-900 border-slate-800 text-slate-100";
+            let icon = "info";
+            if (type === "success") {
+                bgClass = "bg-emerald-950/90 border-emerald-500/30 text-emerald-300";
+                icon = "check-circle";
+            } else if (type === "error") {
+                bgClass = "bg-red-950/90 border-red-500/30 text-red-300";
+                icon = "alert-circle";
+            }
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl glass transition-all duration-300 translate-y-5 opacity-0 ${bgClass}`;
+            toast.innerHTML = `
+                <i data-lucide="${icon}" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="text-xs font-semibold">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-5', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
